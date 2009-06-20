@@ -7,7 +7,16 @@
 # replace - whether to use replacement in bootstrapping
 # divergence(sp500.subset, 25, filter=getCorFilter.RMT())
 # divergence(sp500.subset, 25, filter=getCorFilter.Shrinkage())
-divergence <- function(h, count, window=NULL, filter=getCorFilter.RMT())
+# Can measure information (the default) or stability. Measuring stability will
+# resample twice to get two forms of the correlation matrix.
+divergence <- function(h, count, window=NULL, filter=getCorFilter.RMT(), 
+  measure='information')
+{
+  fn <- paste('divergence', measure, sep='.')
+  do.call(fn, list(h, count, window, filter))
+}
+
+divergence.information <- function(h, count, window, filter)
 {
   if (is.null(window)) { window <- anylength(h) }
   # Convert to matrix to allow duplicates
@@ -41,7 +50,8 @@ divergence.kl <- function(sigma.1, sigma.2)
   0.5 * (term.1 + term.2 - nrow(sigma.1))
 }
 
-# The expected value of the divergence for random matrices
+# The expected value of the divergence for random matrices (sample versus 
+# true correlation matrix)
 divergenceLimit.kl <- function(m, t=NULL)
 {
   if (is.null(t))
@@ -72,5 +82,42 @@ plotDivergenceLimit.kl <- function(m, t.range, ..., overlay=FALSE)
   }
 
   invisible(limit)
+}
+
+# Limit for stability (distance between two sample correlation matrices)
+stabilityLimit.kl <- function(m, t=NULL)
+{ 
+  if (is.null(t))
+  {
+    t <- m[2]
+    m <- m[1]
+  } 
+
+  0.5 * m * (m+1) / (t - m - 1)
+}
+
+# Determine the stability of the filter.
+divergence.stability <- function(h, count, window, filter)
+{
+  if (is.null(window)) { window <- anylength(h) }
+  # Convert to matrix to allow duplicates
+  h <- matrix(h, ncol=ncol(h))
+
+  div <- function(junk, h.full)
+  {
+    h.window.1 <- h.full[sample(index(h.full), window, replace=TRUE), ]
+    c.sample.1 <- cov2cor(cov.sample(h.window.1))
+    h.window.2 <- h.full[sample(index(h.full), window, replace=TRUE), ]
+    c.sample.2 <- cov2cor(cov.sample(h.window.2))
+
+    divergence <- divergence.kl(c.sample.1, c.sample.2)
+    return(divergence)
+  }
+  ds <- sapply(1:count, div, h)
+
+  theory <- stabilityLimit.kl(ncol(h), window)
+  #cat("Theoretical divergence is",theory,"\n")
+
+  return(c(mean=mean(ds, na.rm=TRUE), sd=sd(ds, na.rm=TRUE), limit=theory))
 }
 

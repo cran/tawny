@@ -26,8 +26,8 @@
 \tabular{ll}{
 Package: \tab tawny\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2009-03-02\cr
+Version: \tab 1.1.0\cr
+Date: \tab 2009-06-20\cr
 License: \tab GPL-2\cr
 }
 There are a number of ways to use this package. At a high level, the estimation
@@ -61,12 +61,12 @@ functions are primarily exposed as shrinkage.*.
 \author{
 Brian Lee Yung Rowe
 
-Maintainer: Brian Lee Yung Rowe <tawny-help@muxspace.com>
+Maintainer: Brian Lee Yung Rowe <r@nurometic.com>
 }
 \references{
 Gatheral, Jim. "Random Matrix Theory and Covariance Estimation." 3 Oct. 2008.
 New York. 7 Oct. 2008
-<http://www.math.nyu.edu/fellows_fin_math/gatheral/RandomMatrixCovariance2008.pdf>.
+<http://www.math.nyu.edu/fellows\_fin\_math/gatheral/RandomMatrixCovariance2008.pdf>.
 
 Potters, Marc; Bouchaud, Jean-Philippe; Laloux, Laurent.
 "Financial Applications of Random Matrix Theory: Old Laces and New Pieces."

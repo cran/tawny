@@ -1,6 +1,8 @@
 # Perform shrinkage on a sample covariance towards a biased covariance
 # Author: Brian Lee Yung Rowe
 #
+
+############################### PUBLIC METHODS ##############################
 # Shrink the sample covariance matrix towards the model covariance matrix for
 # the given time window.
 # model - The covariance matrix specified by the model, e.g. single-index, 
@@ -9,16 +11,41 @@
 #   it will be computed from the returns matrix
 # Example
 #   S.hat <- cov.shrink(ys)
-cov.shrink <- function(returns, sample=NULL, prior.fun=cov.prior.cc, ...)
+cov.shrink <- function(h, ...) UseMethod('cov.shrink')
+cov.shrink.default <- function(h, ...)
+{
+  cov.shrink.returns(h, ...)
+}
+
+cov.shrink.correlation <- function(h, ...)
+{
+  stop("Shrinkage on correlation matrix is not supported.")
+}
+
+# Estimate the covariance matrix using the specified constant.fun for 
+# determining the shrinkage constant. The constant.fun is passed two 
+# parameters - the sample covariance matrix and the number of rows (T) in the 
+# original returns stream.
+cov.shrink.covariance <- function(h, T, constant.fun, prior.fun=cov.prior.cc, ...)
+{
+  S <- h
+  F <- prior.fun(S, ...)
+  d <- constant.fun(S, T)
+
+  if (logLevel() > 0) cat("Got coefficient d =",d,"\n")
+
+  S.hat <- d * F + (1 - d) * S
+  S.hat
+}
+
+cov.shrink.returns <- function(h, prior.fun=cov.prior.cc, ...)
 {
   #if (logLevel() > 0) cat("Shrinking covariance for",last(index(returns)),"\n")
-  if (is.null(sample)) { S <- cov.sample(returns) }
-  else { S <- sample }
+  S <- cov.sample(h)
 
-  T <- nrow(returns)
-  #F <- cov.prior.cc(S)
+  T <- nrow(h)
   F <- prior.fun(S, ...)
-  k <- shrinkage.intensity(returns, F, S)
+  k <- shrinkage.intensity(h, F, S)
   d <- max(0, min(k/T, 1))
 
   if (logLevel() > 0) cat("Got intensity k =",k,"and coefficient d =",d,"\n")
@@ -27,15 +54,6 @@ cov.shrink <- function(returns, sample=NULL, prior.fun=cov.prior.cc, ...)
   S.hat
 }
 
-# Return a correlation matrix generator that is compatible with the portfolio
-# optimizer
-# Example
-#   ws <- optimizePortfolio(ys, 100, getCorFilter.Shrinkage())
-#   plotPerformance(ys,ws)
-getCorFilter.Shrinkage <- function(prior.fun=cov.prior.cc, ...)
-{
-  function(h) return(cov2cor(cov.shrink(h, prior.fun=prior.fun, ...)))
-}
 
 # Calculate the sample covariance matrix from a returns matrix
 # Returns a T x N returns matrix (preferably zoo/xts)
@@ -47,6 +65,7 @@ cov.sample <- function(returns)
   X <- t(returns)
   ones <- rep(1,T)
   S <- (1/T) * X %*% (diag(T) - 1/T * (ones %o% ones) ) %*% t(X)
+  class(S) <- c(class(S), 'covariance')
   S
 }
 

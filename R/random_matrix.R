@@ -1,21 +1,5 @@
-# Look at rmetrics.org
-#library('PerformanceAnalytics')
 library(zoo)
 library(quantmod)
-
-# This is the default filter
-getCorFilter.RMT <- function(hint=c(4,1), ...)
-{
-  # h is a zoo object and will be t x m
-  #function(h) { filter.RMT(t(h), breaks, hint) }
-  function(h) return(filter.RMT(h, hint=hint, ...))
-}
-
-# This acts as a control case with no cleaning
-getCorFilter.raw <- function()
-{
-  function(h) return(cor.empirical(h))
-}
 
 # Optimize a portfolio to minimize risk using RMT
 # Params
@@ -56,9 +40,11 @@ getCorFilter.raw <- function()
 #}
 
 # Transition in progress to TxM - filter.RMT now takes TxM xts object
+# This should be sufficiently generic to handle all types of h
 filter.RMT <- function(h, hint, ..., type='kernel')
 {
   log.level <- logLevel()
+  classify(h)
 
   if (log.level > 1) { cat("Calculating eigenvalue distribution\n") }
   mp.hist <- do.call(paste('mp.density.',type,sep=''), list(h, ...))
@@ -113,7 +99,8 @@ cor.empirical <- function(h)
   # E = H H'
   t <- nrow(ns)
   e <- t(ns) %*% ns / t
-
+  class(e) <- c(class(e), 'correlation')
+  e
 }
 
 ##------------------------ MARCENKO-PASTUR FUNCTIONS ------------------------##
@@ -128,8 +115,8 @@ cor.empirical <- function(h)
 # Returns hist with eigenvalues attached
 mp.density.hist <- function(h, breaks=NULL, cutoff=0.01)
 {
-  #e <- cor.empirical(h)
-  e <- cov2cor(cov.sample(h))
+  e <- cor.empirical(h)
+  #e <- cov2cor(cov.sample(h))
 
   # Calculate eigenvalues
   lambda <- eigen(e, symmetric=TRUE, only.values=FALSE)
@@ -155,13 +142,32 @@ mp.density.hist <- function(h, breaks=NULL, cutoff=0.01)
   hist
 }
 
-mp.density.kernel <- function(h, adjust=0.2, kernel='e', ...)
+mp.density.kernel <- function(h, ...) UseMethod('mp.density.kernel')
+
+# Just assume it's a returns matrix (should be backwards compatible)
+mp.density.kernel.default <- function(h, ...)
+{
+  mp.density.kernel.returns(h, ...)
+}
+
+# Calculate the density using a returns series
+mp.density.kernel.returns <- function(h, ...)
 {
   e <- cor.empirical(h)
-  #e <- cov2cor(cov.sample(h))
+  mp.density.kernel.correlation(e, ...)
+}
 
+mp.density.kernel.covariance <- function(h, ...)
+{
+  mp.density.kernel.correlation(cov2cor(h), ...)
+}
+
+# Calculate the density using a correlation matrix
+# h - correlation matrix of the returns series
+mp.density.kernel.correlation <- function(h, adjust=0.2, kernel='e', ...)
+{
   # Calculate eigenvalues
-  lambda <- eigen(e, symmetric=TRUE, only.values=FALSE)
+  lambda <- eigen(h, symmetric=TRUE, only.values=FALSE)
   ds <- density(lambda$values, adjust=adjust, kernel=kernel, ...)
   ds$values <- lambda$values
   ds$vectors <- lambda$vectors
@@ -402,7 +408,7 @@ denoise <- function(hist, lambda.plus=1.6, h=NULL)
   diags <- diag(c.clean) %o% rep(1, nrow(c.clean))
   c.clean <- c.clean / sqrt(diags * t(diags))
 
-  if (! is.null(h))
+  if (! is.null(h) & 'returns' %in% class(h))
   {
     rownames(c.clean) <- anynames(h)
     colnames(c.clean) <- anynames(h)

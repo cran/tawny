@@ -1,9 +1,12 @@
 \name{divergence}
 \alias{divergence}
+\alias{divergence.information}
+\alias{divergence.stability}
 \alias{divergence.kl}
 \alias{divergenceLimit.kl}
+\alias{stabilityLimit.kl}
 \alias{plotDivergenceLimit.kl}
-\title{ Measure the divergence between two correlation matrices }
+\title{ Measure the divergence and stability between two correlation matrices }
 \description{
   The Kullback-Leibler distance function can be used to measure the divergence
   between two correlation matrices. Although originally designed for probability
@@ -12,9 +15,12 @@
   the effectiveness of a particular filtering strategy for correlation matrices.
 }
 \usage{
-divergence(h, count, window = NULL, filter = getCorFilter.RMT())
+divergence(h, count, window = NULL, filter = getCorFilter.RMT(), measure = 'information')
+divergence.information(h, count, window, filter)
+divergence.stability(h, count, window, filter)
 divergence.kl(sigma.1, sigma.2)
 divergenceLimit.kl(m, t = NULL)
+stabilityLimit.kl(m, t = NULL)
 plotDivergenceLimit.kl(m, t.range, ..., overlay = FALSE)
 }
 \arguments{
@@ -22,6 +28,7 @@ plotDivergenceLimit.kl(m, t.range, ..., overlay = FALSE)
   \item{count}{ The number of bootstrap observations to create }
   \item{window}{ The number of samples to include in each observation. Defaults to the anylength of h. }
   \item{filter}{ The correlation filter to measure }
+  \item{measure}{ The type of divergence to calculate. Possible choices are information (default) or stability. }
   \item{sigma.1}{ The sample correlation matrix }
   \item{sigma.2}{ The model correlation matrix (aka the filtered matrix) }
   \item{m}{ The number of assets }
