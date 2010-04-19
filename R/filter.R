@@ -1,8 +1,5 @@
-library(zoo)
-library(quantmod)
-
 # No filtering
-getCorFilter.Sample <- function() { function(h) cov.sample(h) }
+getCorFilter.Sample <- function() { function(h) cov2cor(cov.sample(h)) }
 
 # This acts as a control case with no cleaning
 getCorFilter.Raw <- function()
@@ -35,7 +32,13 @@ getCorFilter.ShrinkageM <- function(market, prior.fun=cov.prior.cc, ...)
 
   fn <- function(h)
   {
-    dates <- as.Date(rownames(h), format='%Y-%m-%d')
+    if (!is.null(rownames(h))) 
+      dates <- as.Date(rownames(h), format='%Y-%m-%d')
+    else if (!is.null(index(h)))
+      dates <- index(h)
+    else
+      dates <- names(h)
+
     # This is not as efficient if the market has yet to be downloaded, but
     # the interface is cleaner. Think about how to balance this better later.
     if ('character' %in% class(market))
@@ -46,7 +49,6 @@ getCorFilter.ShrinkageM <- function(market, prior.fun=cov.prior.cc, ...)
     }
     else m <- market
 
-    # TODO: Preserve date indexes in h
     if (start(m) > first(dates)) stop("Market data does not span start of h")
     if (end(m) < last(dates)) stop("Market data does not span end of h")
 
@@ -54,7 +56,7 @@ getCorFilter.ShrinkageM <- function(market, prior.fun=cov.prior.cc, ...)
     if (anylength(m) != anylength(h)) stop("Inconsistent data lengths")
 
     # Calculate beta
-    beta.fn <- function(h, m) cov(h, m) / var(h)
+    beta.fn <- function(h, m) cov(h, m) / var(m)
     betas <- apply(h, 2, beta.fn, m)
 
     # Subtract beta * market from returns

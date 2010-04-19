@@ -1,8 +1,8 @@
 # Look at rmetrics.org
 #library(PerformanceAnalytics)
-library(futile)
-library(zoo)
-library(quantmod)
+#library(futile)
+#library(zoo)
+#library(quantmod)
 
 # Assign a class to the given object
 # If h is not square, then assume it is returns
@@ -28,24 +28,6 @@ classify <- function(x)
 # matrix generator. This is a generic optimizer that allows any custom generator
 # of correlation matrices to be used.
 
-# Returns current log level of package
-#logLevel <- function(new.level=NULL)
-#{
-#  if (! is.null(new.level)) { options('log.level'=new.level) }
-#
-#  if (is.null(getOption('log.level'))) { return(0) }
-#  return(getOption('log.level'))
-#}
-
-# Set with options('use.plots'=FALSE)
-# Defaults to TRUE
-#usePlots <- function(new.val=NULL)
-#{
-#  if (! is.null(new.val)) { options('use.plots'=new.val) }
-#
-#  if (is.null(getOption('use.plots'))) { return(TRUE) }
-#  return(getOption('use.plots'))
-#}
 
 # Ensures that a given series exists and downloads via quantmod if it doesn't
 # serie - Either a string or a list
@@ -67,7 +49,7 @@ ensure <- function(serie, src='FRED', reload=FALSE, ...)
 
     if (! reload) next
 
-    cat("(Re)loading symbol",series,"from",src,"\n")
+    logger(DEBUG,sprintf("(Re)loading symbol %s from %s",series,src))
     getSymbols(series, src=src, ...)
   }
 }
@@ -101,7 +83,7 @@ getIndexComposition <- function(ticker='^GSPC', hint=NA, src='yahoo')
   {
     start <- (page-1) * 50 + 1
     url <- paste(base, ticker, formats, start, sep='')
-    cat("Loading page",page,"for",ticker,"\n")
+    logger(INFO, sprintf("Loading page %s for %s",page,ticker))
     data <- read.csv(url, header=FALSE)
 
     # This is here due to a bug in Yahoo's download where the first record gets
@@ -146,10 +128,9 @@ getPortfolioReturns <- function(symbols, obs=NULL, start=NULL, end=Sys.Date(),
   for (s in symbols)
   {
     asset <- getSymbols(s, from=start, to=end, auto.assign=FALSE)
-    if (logLevel() > 0) cat("Binding",s,"for ")
     raw <- fun(asset)
-    if (logLevel() > 0)
-      cat("[",format(start(raw)),",",format(end(raw)),"]\n",sep='')
+    logger(INFO, sprintf("Binding %s for [%s,%s]",s, format(start(raw)),format(end(raw))))
+      
     a <- xts(raw, order.by=index(asset))
     p <- cbind(p, a[2:anylength(a)])
   }
@@ -157,25 +138,25 @@ getPortfolioReturns <- function(symbols, obs=NULL, start=NULL, end=Sys.Date(),
   # First remove dates that have primarily NAs (probably bad data)
   o.dates <- rownames(p)
   p <- p[apply(p, 1, function(x) sum(x, na.rm=TRUE) != 0), ]
-  cat("Removed suspected bad dates",setdiff(o.dates,rownames(p)),"\n")
+  logger(INFO, sprintf("Removed suspected bad dates %s",setdiff(o.dates,rownames(p))))
 
   if (! is.na(na.value))
   {
     #for (s in symbols) p[,s][is.na(p[,s])] <- na.value
     p[is.na(p)] <- 0
-    cat("Replaced NAs with",na.value,"\n")
+    logger(INFO, sprintf("Replaced NAs with %s",na.value))
   }
   else
   {
     # NOTE: This has consistency issues when comparing with a market index
     o.dates <- rownames(p)
     p <- p[apply(p, 1, function(x) sum(is.na(x)) < 0.1 * length(x) ), ]
-    cat("Removed dates with too many NAs",setdiff(o.dates,rownames(p)),"\n")
+    logger(INFO, sprintf("Removed dates with too many NAs %s",setdiff(o.dates,rownames(p))))
 
     # Now remove columns with NAs
     nas <- apply(p, 2, function(x) !any(is.na(x)) )
     p <- p[,which(nas == TRUE)]
-    cat("Removed symbols with NAs:",setdiff(symbols,anynames(p)),"\n")
+    logger(INFO, sprintf("Removed symbols with NAs: %s",setdiff(symbols,anynames(p))))
   }
 
   if (is.null(obs)) { return(p[paste(start,end, sep='::')]) }
@@ -183,9 +164,9 @@ getPortfolioReturns <- function(symbols, obs=NULL, start=NULL, end=Sys.Date(),
   p <- p[index(p) <= end]
   idx.inf <- anylength(p) - min(anylength(p), obs) + 1
   idx.sup <- anylength(p)
-  if (logLevel() > 0) cat("Returning rows [",idx.inf,",",idx.sup,"]\n")
+  #if (logLevel() > 0) cat("Returning rows [",idx.inf,",",idx.sup,"]\n")
   
-  cat("Loaded portfolio with",ncol(p),"assets\n")
+  logger(INFO, sprintf("Loaded portfolio with %s assets",ncol(p)))
   out <- p[idx.inf:idx.sup, ]
   class(out) <- c(class(out), 'returns')
 
