@@ -1,14 +1,14 @@
-.onLoad <- function(a,b)
+.onAttach <- function(libname,pkgname)
 {
-  require(futile)
-  require(futile.logger)
-  require(zoo)
-  require(quantmod)
   .init()
 }
 
-.init <- function()
+.init <- function(loglevel=INFO)
 {
+  #cat("\nSearch path\n")
+  #print(search())
+  #cat("\n")
+  config_logger(threshold=loglevel)
   if (!exists('logger')) logger <<- getLogger('tawny')
   if (!exists('tawny.options'))
     tawny.options <<- OptionsManager('tawny.options',

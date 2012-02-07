@@ -1,10 +1,6 @@
-\name{cov.shrink}
-\alias{cov.shrink}
-\alias{cov.shrink.default}
-\alias{cov.shrink.returns}
-\alias{cov.shrink.covariance}
-\alias{cov.shrink.correlation}
-\alias{cov.sample}
+\name{cov_shrink}
+\alias{cov_shrink}
+\alias{cov_sample}
 \alias{cov.prior.cc}
 \alias{cov.prior.identity}
 \alias{cor.mean}
@@ -12,22 +8,20 @@
 \alias{shrinkage.r}
 \alias{shrinkage.c}
 \alias{shrinkage.intensity}
+\alias{cov.shrink} % Deprecated
+\alias{cov.sample} % Deprecated
 \title{ Shrink the covariance matrix towards some global mean }
 \description{
   This performs a covariance shrinkage estimation as specified in Ledoit and
   Wolf. Using within the larger framework only requires using the 
-  getCorFilter.Shrinkage function, which handles the work of constructing a
+  ShrinkageFilter type, which handles the work of constructing a
   shrinkage estimate of the covariance matrix of returns (and consequently its
   corresponding correlation matrix).
 }
 \usage{
-cov.shrink(h, ...)
-\method{cov.shrink}{default}(h, ...)
-\method{cov.shrink}{returns}(h, prior.fun = cov.prior.cc, ...)
-\method{cov.shrink}{covariance}(h, T, constant.fun, prior.fun = cov.prior.cc, ...)
-\method{cov.shrink}{correlation}(h, ...)
+cov_shrink(...)
 
-cov.sample(returns)
+cov_sample(...)
 
 cov.prior.cc(S)
 
@@ -40,21 +34,34 @@ shrinkage.p(returns, sample)
 shrinkage.r(returns, sample, pi.est)
 
 shrinkage.c(prior, sample)
+
+cov.shrink(...)
+cov.sample(...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{returns}{ A zoo object of returns. This is TxM }
   \item{sample}{ The sample covariance matrix (synonomous to S) }
   \item{prior}{ The shrinkage target covariance matrix (synonomous to F) }
-  \item{prior.fun}{ Generates the prior/model covariance matrix }
-  \item{constant.fun}{Use this function to calculate the shrinkage constant}
   \item{S}{ The sample covariance matrix }
-  \item{T}{ Length of returns series used in scaling of shrinkage coefficient}
   \item{pi.est}{ The estimate returned from shrinkage.p }
-  \item{h}{ A generic tawny object representing either a returns, covariance, or correlation matrix}
   \item{\dots}{ Additional parameters to pass to prior.fun }
 }
 \details{
+  cov_shrink(h, prior.fun = cov.prior.cc, ...)
+  cov_shrink(h, T, constant.fun, prior.fun = cov.prior.cc, ...)
+  cov_shrink(h, ...)
+
+
+  cov_sample{...}
+  cov_sample{returns}
+  cov_sample{returns}
+
+  T - Length of returns series used in scaling of shrinkage coefficient
+  h - A generic tawny object representing either a returns, covariance, or correlation matrix
+  constant.fun -Use this function to calculate the shrinkage constant
+  prior.fun - Generates the prior/model covariance matrix 
+
   Most of the code related to the shrinkage estimator is tied to calculating a
   value for the shrinkage coefficient. The remainder of the code shrinks the
   sample covariance matrix towards the target. In addition, there is a function
@@ -81,18 +88,18 @@ shrinkage.c(prior, sample)
 
   # Estimate the covariance matrix based on the given asset returns
   data(sp500.subset)
-  ys <- sp500.subset
-  S.hat <- cov.shrink(ys)
+  ys <- create(TawnyPortfolio, sp500.subset, 150)
+  S.hat <- cov_shrink(ys)
 
   # Optimize the portfolio weights using the shrinkage estimator
-  ws <- optimizePortfolio(ys, 150, getCorFilter.Shrinkage())
-  plotPerformance(ys,ws, bg='white', name='Shrinkage')
+  ws <- optimizePortfolio(ys, create(ShrinkageFilter))
+  #plotPerformance(ys,ws, bg='white', name='Shrinkage')
 
   # Calculate the sample covariance matrix
-  S <- cov.sample(ys)
+  #S <- cov.sample(ys)
 
   # Calculate the shrinkage coefficient
-  F <- cov.prior.cc(S)
-  k <- shrinkage.intensity(ys, F, S)
+  #F <- cov.prior.cc(S)
+  #k <- shrinkage.intensity(ys, F, S)
 }
 \keyword{ ts }

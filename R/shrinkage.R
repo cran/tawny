@@ -10,40 +10,27 @@
 # sample - The sample covariance matrix. If the sample covariance is null, then
 #   it will be computed from the returns matrix
 # Example
-#   S.hat <- cov.shrink(ys)
-cov.shrink <- function(h, ...) UseMethod('cov.shrink')
-cov.shrink.default <- function(h, ...)
+#   S.hat <- cov_shrink(ys)
+
+cov_shrink %when% (h %isa% TawnyPortfolio)
+cov_shrink %as% function(h)
 {
-  cov.shrink.returns(h, ...)
+  cov_shrink(h$returns)
 }
 
-cov.shrink.correlation <- function(h, ...)
+cov_shrink %when% (h %isa% AssetReturns)
+cov_shrink %as% function(h)
 {
-  stop("Shrinkage on correlation matrix is not supported.")
+  cov_shrink(h, prior.fun=cov.prior.cc)
 }
 
-# Estimate the covariance matrix using the specified constant.fun for 
-# determining the shrinkage constant. The constant.fun is passed two 
-# parameters - the sample covariance matrix and the number of rows (T) in the 
-# original returns stream.
-cov.shrink.covariance <- function(h, T, constant.fun, prior.fun=cov.prior.cc, ...)
+cov_shrink %when% (h %isa% AssetReturns)
+cov_shrink %as% function(h, prior.fun)
 {
-  S <- h
-  F <- prior.fun(S, ...)
-  d <- constant.fun(S, T)
-
-  logger(INFO, sprintf("Got coefficient d = %s",d))
-
-  S.hat <- d * F + (1 - d) * S
-  S.hat
-}
-
-cov.shrink.returns <- function(h, prior.fun=cov.prior.cc, ...)
-{
-  S <- cov.sample(h)
+  S <- cov_sample(h)
 
   T <- nrow(h)
-  F <- prior.fun(S, ...)
+  F <- prior.fun(S)
   k <- shrinkage.intensity(h, F, S)
   d <- max(0, min(k/T, 1))
 
@@ -53,11 +40,59 @@ cov.shrink.returns <- function(h, prior.fun=cov.prior.cc, ...)
   S.hat
 }
 
+# For backwards compatibility
+cov_shrink %when% (h %isa% zoo)
+cov_shrink %as% function(h)
+{
+  class(h) <- c("AssetReturns", class(h))
+  cov_shrink(h, prior.fun=cov.prior.cc)
+}
+
+cov_shrink %when% (h %isa% zoo)
+cov_shrink %as% function(h, prior.fun)
+{
+  class(h) <- c("AssetReturns", class(h))
+  cov_shrink(h, prior.fun=prior.fun)
+}
+
+
+cov_shrink %when% (h %isa% CorrelationMatrix)
+cov_shrink %as% function(h)
+{
+  stop("Shrinkage on correlation matrix is not supported.")
+}
+
+# Estimate the covariance matrix using the specified constant.fun for 
+# determining the shrinkage constant. The constant.fun is passed two 
+# parameters - the sample covariance matrix and the number of rows (T) in the 
+# original returns stream.
+cov_shrink %when% (h %isa% CovarianceMatrix)
+cov_shrink %as% function(h, T, constant.fun)
+{
+  cov_shrink(h,T,constant.fun, prior.fun=cov.prior.cc)
+}
+
+cov_shrink %when% (h %isa% CovarianceMatrix)
+cov_shrink %as% function(h, T, constant.fun, prior.fun)
+{
+  S <- h
+  F <- prior.fun(S)
+  d <- constant.fun(S, T)
+
+  logger(INFO, sprintf("Got coefficient d = %s",d))
+
+  S.hat <- d * F + (1 - d) * S
+  S.hat
+}
+
+
 
 # Calculate the sample covariance matrix from a returns matrix
 # Returns a T x N returns matrix (preferably zoo/xts)
 # p.cov <- cov.sample(p)
-cov.sample <- function(returns)
+
+cov_sample %when% (returns %isa% AssetReturns)
+cov_sample %as% function(returns)
 {
   # X is N x T
   T <- nrow(returns)
@@ -67,6 +102,21 @@ cov.sample <- function(returns)
   class(S) <- c(class(S), 'covariance')
   S
 }
+
+cov_sample %when% (returns %isa% zoo)
+cov_sample %as% function(returns)
+{
+  class(returns) <- c("AssetReturns",class(returns))
+  cov_sample(returns)
+}
+
+cov_sample %when% (returns %isa% matrix)
+cov_sample %as% function(returns)
+{
+  class(returns) <- c("AssetReturns",class(returns))
+  cov_sample(returns)
+}
+
 
 # Constant correlation target
 # S is sample covariance
@@ -205,3 +255,7 @@ shrinkage.c <- function(prior, sample)
   sum(squares, na.rm=TRUE)
 }
 
+##-------------------------------- DEPRECATED -------------------------------##
+cov.sample <- function(...) cov_sample(...)
+
+cov.shrink <- function(...) cov_shrink(...)

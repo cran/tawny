@@ -26,8 +26,8 @@
 \tabular{ll}{
 Package: \tab tawny\cr
 Type: \tab Package\cr
-Version: \tab 1.2.1\cr
-Date: \tab 2010-04-19\cr
+Version: \tab 2.0.2\cr
+Date: \tab 2012-02-07\cr
 License: \tab GPL-2\cr
 }
 There are a number of ways to use this package. At a high level, the estimation
@@ -57,6 +57,12 @@ plugged into the fitting function, and so on.
 
 For people interested in studying shrinkage estimation techniques, these 
 functions are primarily exposed as shrinkage.*.
+
+NOTE: This is an alpha release and the high-level portfolio functions have not 
+been fully ported nor tested.
+. Use PerformanceAnalytics for performance analysis
+. Clean up optimization workflow
+. Clean up back testing vs single day workflows
 }
 \author{
 Brian Lee Yung Rowe
@@ -82,7 +88,7 @@ Oct. 2001. London. 12 Feb. 2009
 
 \keyword{ package }
 \keyword{ ts }
-\seealso{ \code{\link{optimizePortfolio}}, \code{\link{filter.RMT}}, \code{\link{getPortfolioReturns}} }
+\seealso{ \code{\link{optimizePortfolio}}, \code{\link{denoise}}, \code{\link{getPortfolioReturns}} }
 \examples{
 # This is autorun outside of examples
 tawny:::.init()
@@ -91,31 +97,20 @@ tawny:::.init()
 # Select a portfolio using 200 total observations
 data(sp500.subset)
 h <- sp500.subset
+p <- create(TawnyPortfolio, h, 150)
+b <- create(BenchmarkPortfolio, '^GSPC', 150, nrow(h), end=end(h))
+
 # Optimize using a window of length 200 (there will be 51 total iterations)
-ws <- optimizePortfolio(h, 150, getCorFilter.RMT() )
-# Plot the performance of the resulting optimized portfolio
-pf <- plotPerformance(h, ws, 150, y.min=-0.4)
-# Compare the performance with a naive equal-weighted portfolio
-ef <- compare.EqualWeighted(h, 150, y.min=-0.4)
-# Also compare against the S&P 500
-mf <- compare.Market('^GSPC',200,150, y.min=-0.4)
+ws <- optimizePortfolio(p, create(RandomMatrixFilter))
+rs <- create(PortfolioReturns, p, ws)
+o <- zoo(cbind(portfolio=rs, benchmark=b$returns), index(rs))
+charts.PerformanceSummary(o)
+
 
 # Generate weights based on the constant correlation shrinkage estimator
-ws <- optimizePortfolio(h, 150, getCorFilter.Shrinkage())
-pf <- plotPerformance(h, ws, 150, y.min=-0.4)
-
-
-## Low level use of the package
-# View the theoretical Marcenko-Pastur distribution of eigenvalues of a
-# random matrix
-mp.theory(Q=4.2, sigma=1.1)
-
-# Calculate the density of eigenvalues for a matrix of portfolio returns
-h <- getRandomMatrix(20, 100)
-hist <- mp.density.kernel(h)
-
-# Fit an empirical distribution to a theoretical curve
-hint <- c(6,2)
-o <- optim(hint, mp.fit.kernel(hist))
+ws <- optimizePortfolio(p, create(ShrinkageFilter))
+rs <- create(PortfolioReturns, p, ws)
+o <- zoo(cbind(portfolio=rs, benchmark=b$returns), index(rs))
+charts.PerformanceSummary(o)
 
 }
