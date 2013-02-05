@@ -1,6 +1,10 @@
 \name{tawny-package}
 \alias{tawny-package}
 \alias{tawny}
+\alias{EmpiricalDenoiser}
+\alias{SampleDenoiser}
+\alias{RandomMatrixDenoiser}
+\alias{ShrinkageDenoiser}
 \docType{package}
 \title{
   Provides various portfolio optimization strategies including random matrix 
@@ -26,9 +30,9 @@
 \tabular{ll}{
 Package: \tab tawny\cr
 Type: \tab Package\cr
-Version: \tab 2.0.2\cr
-Date: \tab 2012-02-07\cr
-License: \tab GPL-2\cr
+Version: \tab 2.1.0\cr
+Date: \tab 2013-02-05\cr
+License: \tab GPL-3\cr
 }
 There are a number of ways to use this package. At a high level, the estimation
 techniques can be
@@ -67,7 +71,7 @@ been fully ported nor tested.
 \author{
 Brian Lee Yung Rowe
 
-Maintainer: Brian Lee Yung Rowe <r@nurometic.com>
+Maintainer: Brian Lee Yung Rowe <r@zatonovo.com>
 }
 \references{
 Gatheral, Jim. "Random Matrix Theory and Covariance Estimation." 3 Oct. 2008.
@@ -90,27 +94,25 @@ Oct. 2001. London. 12 Feb. 2009
 \keyword{ ts }
 \seealso{ \code{\link{optimizePortfolio}}, \code{\link{denoise}}, \code{\link{getPortfolioReturns}} }
 \examples{
-# This is autorun outside of examples
-tawny:::.init()
-
-## High level use of package
+\dontrun{
 # Select a portfolio using 200 total observations
 data(sp500.subset)
 h <- sp500.subset
-p <- create(TawnyPortfolio, h, 150)
-b <- create(BenchmarkPortfolio, '^GSPC', 150, nrow(h), end=end(h))
+p <- TawnyPortfolio(h, 150)
+b <- BenchmarkPortfolio('^GSPC', 150, nrow(h), end=end(h))
 
 # Optimize using a window of length 200 (there will be 51 total iterations)
-ws <- optimizePortfolio(p, create(RandomMatrixFilter))
-rs <- create(PortfolioReturns, p, ws)
+ws <- optimizePortfolio(p, RandomMatrixDenoiser())
+rs <- PortfolioReturns(p, ws)
 o <- zoo(cbind(portfolio=rs, benchmark=b$returns), index(rs))
 charts.PerformanceSummary(o)
 
 
 # Generate weights based on the constant correlation shrinkage estimator
-ws <- optimizePortfolio(p, create(ShrinkageFilter))
-rs <- create(PortfolioReturns, p, ws)
+ws <- optimizePortfolio(p, ShrinkageDenoiser())
+rs <- PortfolioReturns(p, ws)
 o <- zoo(cbind(portfolio=rs, benchmark=b$returns), index(rs))
 charts.PerformanceSummary(o)
+}
 
 }

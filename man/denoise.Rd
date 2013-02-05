@@ -1,12 +1,10 @@
 \name{denoise}
 \alias{denoise}
-\alias{create.RandomMatrixFilter}
-\alias{create.ShrinkageFilter}
 \alias{cor.clean}
 \alias{cor.empirical}
 \alias{normalize}
 \alias{deform} % TODO: Move this out
-\title{ Filter noise from a correlation matrix using RMT to identify the noise }
+\title{ Remove noise from a correlation matrix using RMT to identify the noise }
 \description{
   Used to filter out all eigenvalues below k*. At a later date this
   will become pluggable so other people can use their own functions and/or
@@ -28,6 +26,7 @@ normalize(...)
 }
 \details{
 denoise(p, estimator)
+
 normalize(h)
 
 These are different implementations of the denoise function based on the 
@@ -39,19 +38,13 @@ A cleaned correlation matrix.
 \author{ Brian Lee Yung Rowe }
 \seealso{ \code{\link{tawny}}, \code{\link{optimizePortfolio}} }
 \examples{
-# This is autorun outside of examples
-tawny:::.init()
 data(sp500.subset)
 
 h <- sp500.subset
-p <- create(TawnyPortfolio, h, 150)
-r1 <- denoise(p, create(SampleFilter))
-
-r2 <- denoise(p, create(EmpiricalFilter))
-
-r3 <- denoise(p, create(ShrinkageFilter))
-
-r4 <- denoise(p, create(RandomMatrixFilter))
-
+p <- TawnyPortfolio(h, 150)
+r1 <- denoise(p, SampleDenoiser())
+r2 <- denoise(p, EmpiricalDenoiser())
+r3 <- denoise(p, ShrinkageDenoiser())
+r4 <- denoise(p, RandomMatrixDenoiser())
 }
 \keyword{ ts }

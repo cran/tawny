@@ -2,13 +2,13 @@ Package: tawny
 Type: Package
 Title: Provides various portfolio optimization strategies including
         random matrix theory and shrinkage estimators
-Version: 2.0.2
-Depends: R (>= 2.10.0), tawny.types (>= 1.0.0), futile.matrix (>=
-        1.1.0), futile.logger (>= 1.2.0), PerformanceAnalytics, zoo,
-        xts, quantmod, RUnit
-Date: 2012-02-07
+Version: 2.1.0
+Depends: R (>= 2.10), tawny.types (>= 1.1.0), futile.matrix (>= 1.2.0),
+        futile.logger (>= 1.3.0), PerformanceAnalytics, quantmod
+Suggests: RUnit
+Date: 2013-02-05
 Author: Brian Lee Yung Rowe
-Maintainer: Brian Lee Yung Rowe <r@nurometic.com>
+Maintainer: Brian Lee Yung Rowe <r@zatonovo.com>
 Description: Portfolio optimization typically requires an estimate of a
         covariance matrix of asset returns. There are many approaches
         for constructing such a covariance matrix, some using the
@@ -17,7 +17,7 @@ Description: Portfolio optimization typically requires an estimate of a
         theory and shrinkage estimation. Each method attempts to clean
         or remove noise related to the sampling process from the sample
         covariance matrix.
-License: GPL-2
-Packaged: 2012-02-07 15:44:04 UTC; root
+License: GPL-3
+Packaged: 2013-02-05 21:35:57 UTC; brian
 Repository: CRAN
-Date/Publication: 2012-02-07 16:38:49
+Date/Publication: 2013-02-06 15:50:36
