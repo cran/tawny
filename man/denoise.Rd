@@ -4,6 +4,11 @@
 \alias{cor.empirical}
 \alias{normalize}
 \alias{deform} % TODO: Move this out
+\alias{Denoiser}
+\alias{EmpiricalDenoiser}
+\alias{SampleDenoiser}
+\alias{RandomMatrixDenoiser}
+\alias{ShrinkageDenoiser}
 \title{ Remove noise from a correlation matrix using RMT to identify the noise }
 \description{
   Used to filter out all eigenvalues below k*. At a later date this
@@ -38,6 +43,7 @@ A cleaned correlation matrix.
 \author{ Brian Lee Yung Rowe }
 \seealso{ \code{\link{tawny}}, \code{\link{optimizePortfolio}} }
 \examples{
+\dontrun{
 data(sp500.subset)
 
 h <- sp500.subset
@@ -46,5 +52,6 @@ r1 <- denoise(p, SampleDenoiser())
 r2 <- denoise(p, EmpiricalDenoiser())
 r3 <- denoise(p, ShrinkageDenoiser())
 r4 <- denoise(p, RandomMatrixDenoiser())
+}
 }
 \keyword{ ts }

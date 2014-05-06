@@ -1,10 +1,6 @@
 \name{tawny-package}
 \alias{tawny-package}
 \alias{tawny}
-\alias{EmpiricalDenoiser}
-\alias{SampleDenoiser}
-\alias{RandomMatrixDenoiser}
-\alias{ShrinkageDenoiser}
 \docType{package}
 \title{
   Provides various portfolio optimization strategies including random matrix 
@@ -30,8 +26,8 @@
 \tabular{ll}{
 Package: \tab tawny\cr
 Type: \tab Package\cr
-Version: \tab 2.1.0\cr
-Date: \tab 2013-02-05\cr
+Version: \tab 2.1.2\cr
+Date: \tab 2014-05-06\cr
 License: \tab GPL-3\cr
 }
 There are a number of ways to use this package. At a high level, the estimation

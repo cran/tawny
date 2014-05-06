@@ -1,37 +1,51 @@
+# This is to reduce explicit namespace imports
+.cutoff <- function(...) cutoff(...)
+
+Denoiser(...) %as% list(...)
+SampleDenoiser(...) %as% Denoiser(...)
+EmpiricalDenoiser(...) %as% Denoiser(...)
+
 # RandomMatrixDenoisers consist of three components:
 # . cor.fn - A function
 # . cutoff.fn - A function
 # . clean.fn - A function
 RandomMatrixDenoiser(cor.fn=cor.empirical,
-  cutoff.fn=cutoff, clean.fn=cor.clean, ...) %as%
+  cutoff.fn=.cutoff, clean.fn=cor.clean, ...) %as%
 {
-  RandomMatrixFilter(cor.fn=cor.fn, cutoff.fn=cutoff.fn, clean.fn=clean.fn, ...)
+  f <- RandomMatrixFilter(cor.fn=cor.fn, cutoff.fn=cutoff.fn, clean.fn=clean.fn, ...)
+  class(f) <- c('Denoiser', class(f))
+  f
 }
 
 # Specify market as a symbol if you want to shrink on residuals only
 ShrinkageDenoiser(prior.fun=cov.prior.cc, ...) %as%
 {
-  list(prior.fun=prior.fun, ...)
+  Denoiser(prior.fun=prior.fun, ...)
 }
 
-SampleDenoiser(...) %as% list(...)
-EmpiricalDenoiser(...) %as% list(...)
 
 ################################### DENOISE ##################################
 # p <- TawnyPortfolio(h, 90)
 # denoise(p,SampleDenoiser())
-denoise(p, estimator) %::%  TawnyPortfolio : SampleDenoiser : matrix
-denoise(p, estimator) %as% 
+denoise(p, estimator) %::% TawnyPortfolio : Denoiser : matrix
+denoise(p, estimator) %as%
 {
-  cov2cor(cov.sample(p$returns))
+  denoise(as.matrix(p$returns), estimator)
+}
+
+
+denoise(m, estimator) %::%  matrix : SampleDenoiser : matrix
+denoise(m, estimator) %as% 
+{
+  cov2cor(cov.sample(m))
 }
 
 # p <- TawnyPortfolio(h, 90)
 # denoise(p,EmpiricalDenoiser())
-denoise(p, estimator) %::%  TawnyPortfolio : EmpiricalDenoiser : matrix
-denoise(p, estimator) %as% 
+denoise(m, estimator) %::%  matrix : EmpiricalDenoiser : matrix
+denoise(m, estimator) %as% 
 {
-  cor.empirical(p$returns)
+  cor.empirical(m)
 }
 
 # Customizations:
@@ -45,27 +59,26 @@ denoise(p, estimator) %as%
 # s <- c('FCX','AAPL','JPM','AMZN','VMW','TLT','GLD','FXI','ILF','XOM')
 # p <- TawnyPortfolio(s)
 # w <- rollapply(p, function(x) denoise(x, RandomMatrixDenoiser()))
-denoise(p, estimator) %::%  TawnyPortfolio : RandomMatrixDenoiser : matrix
-denoise(p, estimator) %as% 
+denoise(m, estimator) %::%  matrix : RandomMatrixDenoiser : matrix
+denoise(m, estimator) %as% 
 {
   #filter.RMT(p$returns, hint=estimator$hint)
   # Use either a fit based on the theoretical shape or use asymptotics for an
   # analytical solution
   flog.trace("Estimating correlation matrix")
-  p$correlation <- estimator$cor.fn(p$returns)
+  correlation <- estimator$cor.fn(m)
   flog.trace("Getting eigenvalues")
-  es <- eigen(p$correlation, symmetric=TRUE, only.values=FALSE)
+  es <- eigen(correlation, symmetric=TRUE, only.values=FALSE)
   flog.trace("Applying cutoff")
-  lambda.plus <- estimator$cutoff.fn(p$correlation, es, estimator)
+  lambda.plus <- estimator$cutoff.fn(correlation, es, estimator)
   flog.trace("Cleaning matrix")
   estimator$clean.fn(es, lambda.plus)
 }
 
-denoise(p, estimator) %::%  TawnyPortfolio : ShrinkageDenoiser : matrix
-denoise(p, estimator) %when% {
+denoise(h, estimator) %::%  matrix : ShrinkageDenoiser : matrix
+denoise(h, estimator) %when% {
   estimator %hasa% market
 } %as% {
-  h <- p$returns
   # TODO: Validation should be in type constructor
   if (!is.null(rownames(h)))
     dates <- as.Date(rownames(h), format='%Y-%m-%d')
@@ -106,11 +119,12 @@ denoise(p, estimator) %when% {
 
 # p <- TawnyPortfolio(h, 90)
 # denoise(p,ShrinkageDenoiser())
-denoise(p, estimator) %::%  TawnyPortfolio : ShrinkageDenoiser : matrix
-denoise(p, estimator) %as% 
+denoise(m, estimator) %::%  matrix : ShrinkageDenoiser : matrix
+denoise(m, estimator) %as% 
 {
-  cov2cor(cov_shrink(p$returns, prior.fun=estimator$prior.fun))
+  cov2cor(cov.shrink(m, prior.fun=estimator$prior.fun))
 }
+
 
 
 ##------------------------ CORRELATION MATRIX FUNCTIONS ---------------------##
@@ -158,10 +172,8 @@ cor.empirical <- function(h)
 
 # Normalizes a returns matrix such that Var[xit] = 1.
 # Assumes TxM, m population, t observations
-# Type constraint isn't working for inheritance
-#normalize(h) %::% zoo : zoo
 normalize(h) %when% {
-  h %isa% zoo
+  ! is.null(dim(h))
 } %as% {
   apply(h, 2, function(x) x / sd(x))
 }
