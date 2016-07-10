@@ -3,8 +3,8 @@
 \alias{tawny}
 \docType{package}
 \title{
-  Provides various portfolio optimization strategies including random matrix 
-  theory and shrinkage estimators
+  Clean Covariance Matrices Using Random Matrix Theory and Shrinkage Estimators 
+  for Portfolio Optimization
 }
 \description{
   Portfolio optimization typically requires an estimate of a covariance matrix
@@ -26,8 +26,8 @@
 \tabular{ll}{
 Package: \tab tawny\cr
 Type: \tab Package\cr
-Version: \tab 2.1.2\cr
-Date: \tab 2014-05-06\cr
+Version: \tab 2.1.6\cr
+Date: \tab 2016-07-10\cr
 License: \tab GPL-3\cr
 }
 There are a number of ways to use this package. At a high level, the estimation
