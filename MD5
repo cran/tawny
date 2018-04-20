@@ -1,6 +1,6 @@
-d1114e21a866b61451c412c856f0a625 *DESCRIPTION
+27ae95fda6118c85cc487843aa05bc5b *DESCRIPTION
 6965a04453d024105683387f7b9bfa10 *NAMESPACE
-8dca263e7f48a7621fa89f732dfa5600 *R/denoise.R
+8c8af482501788543347fd605c3cea7d *R/denoise.R
 7b11c9a41c204f5482881ce903563218 *R/divergence.R
 224ae56628217b2d19a483aa4ff90f08 *R/framework.R
 8ee749acf5e01e91be7d0bb5d868cdb8 *R/shrinkage.R
@@ -8,8 +8,6 @@ d1114e21a866b61451c412c856f0a625 *DESCRIPTION
 e991a84caf0f37f03388aef4232aba3d *README.md
 43979b66b7e2465e0898bc880c0e4cef *data/sp500.RData
 f84f2fd4a67126bf26ac3b0e82e446ad *data/sp500.subset.RData
-733d6cede082e914eaea4112aa43795f *inst/unitTests/runit.crud.R
-7b86449a6a1ad54c89981c2c011a772a *inst/unitTests/runit.shrinkage.R
 6df19b047f68ee56cdb8017b66d9a7f4 *man/cov_shrink.Rd
 819c426c0a498c51cec9da435c4db17f *man/denoise.Rd
 47cd4b386e34cd0cf7016b7e4fe2e16d *man/divergence.Rd
@@ -17,5 +15,7 @@ f84f2fd4a67126bf26ac3b0e82e446ad *data/sp500.subset.RData
 2fc3b33f201d5a8dc6009ed41bd4ff56 *man/optimizePortfolio.Rd
 d35ed4fb4bd99e22b76bf27e7d6dc7fe *man/sp500.Rd
 06d46f79e03fcf96fe68640e913e04d5 *man/sp500.subset.Rd
-aea88a709c0e9aacb9bf9681f4d5a9d2 *man/tawny-package.Rd
-eacb952fdf6ffe71283ec48962035119 *tests/doRUnit.R
+6d89d0c00ad5384b6ea766445dcd61da *man/tawny-package.Rd
+757a0ff5aa13c2f37b4562f831199a19 *tests/test-all.R
+7e30411e48a244e10b16becb24fa4a01 *tests/testit/test-denoise-normalize.R
+9c2538c71481ec69a618477e484aabe6 *tests/testit/test-shrinkage.R
